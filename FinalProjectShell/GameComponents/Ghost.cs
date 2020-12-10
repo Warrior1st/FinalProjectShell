@@ -116,6 +116,51 @@ namespace FinalProject
             }
             base.Update(gameTime);
         }
+        private void UpdateKeyboard()
+        {
+            KeyboardState ks = Keyboard.GetState();
+            if (ks.IsKeyDown(Keys.Space) && prevKs.IsKeyUp(Keys.Space) && isJumping == false && isGrounded == true)
+            {
+                state = PlayerState.Jumping;
+                currentUpAcceleration = INITIAL_UP_ACCELERATION;
+                velocity.Y = currentUpAcceleration;
+                isJumping = true;
+                isGrounded = false;
+            }
+
+            if (ks.IsKeyDown(Keys.B) && prevKs.IsKeyUp(Keys.B))
+            {
+                drawBorder = !drawBorder;
+            }
+
+            if (ks.IsKeyDown(Keys.Right))
+            {
+                velocity.X = SPEED;
+                if (isJumping == false)
+                {
+                    state = PlayerState.Walking;
+                }
+
+            }
+            else if (ks.IsKeyDown(Keys.Left))
+            {
+                velocity.X = -SPEED;
+                effects = SpriteEffects.FlipHorizontally;
+                if (isJumping == false)
+                {
+                    state = PlayerState.Walking;
+                }
+            }
+            else
+            {
+                velocity.X = 0;
+                if (isJumping == false)
+                {
+                    state = PlayerState.Idle;
+                }
+            }
+            prevKs = ks;
+        }
         public override void Draw(GameTime gameTime)
         {
             SpriteBatch sb = Game.Services.GetService<SpriteBatch>();
