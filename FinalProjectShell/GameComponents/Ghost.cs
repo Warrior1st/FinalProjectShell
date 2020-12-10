@@ -42,7 +42,9 @@ namespace FinalProject
         bool isGrounded = true;
         bool isJumping = false;
 
-        //float groundYCoordiante => Game.GraphicsDevice.Viewport.Height - textures[state].Height;
+        float groundYCoordiante => Game.GraphicsDevice.Viewport.Height - HEIGHT;
+
+        float groundXCoordiante => Game.GraphicsDevice.Viewport.Height - WIDTH;
 
         //int width => textures[state].Width;
 
@@ -72,8 +74,8 @@ namespace FinalProject
             textures.Add(PlayerState.Jumping, Game.Content.Load<Texture2D>("images\\enemy-sheet0"));
             textures.Add(PlayerState.Walking, Game.Content.Load<Texture2D>("images\\enemy-sheet0"));
 
-            position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - textures[state].Width);
-            position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height - textures[state].Height);
+            //position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - WIDTH*2);
+            //position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height - HEIGHT*2);
 
             sourceRectangles.Add(PlayerState.Idle, new List<Rectangle>());
             sourceRectangles.Add(PlayerState.Jumping, new List<Rectangle>());
@@ -105,20 +107,22 @@ namespace FinalProject
         }
         public override void Initialize()
         {
-            //position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - textures[state].Width);
-            //position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height - textures[state].Height);
+            position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - WIDTH*2);
+            position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height - HEIGHT*2);
 
             base.Initialize();
             
         }
         public override void Update(GameTime gameTime)
         {
+            position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - groundXCoordiante/1.9f);
+            position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height- groundYCoordiante/1.5f);
             KeyboardState ks = Keyboard.GetState();
             spriteEffects = SpriteEffects.None;
             velocity.Y = SPEED;
             UpdateKeyboard();
             UpdateJumping();
-
+            
 
 
             frameTimer += gameTime.ElapsedGameTime.TotalSeconds;
