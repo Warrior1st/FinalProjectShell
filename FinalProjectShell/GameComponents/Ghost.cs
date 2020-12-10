@@ -30,6 +30,7 @@ namespace FinalProject
 
         Vector2 position;
         Vector2 velocity;
+        float currentUpAcceleration = 0f;
 
         SpriteEffects spriteEffects;
 
@@ -79,8 +80,15 @@ namespace FinalProject
             KeyboardState ks = Keyboard.GetState();
             spriteEffects = SpriteEffects.None;
             velocity.Y = SPEED;
+            if (ks.IsKeyDown(Keys.Space))
+            {
+                currentUpAcceleration = INITIAL_UP_ACCELERATION;
+                velocity.Y = currentUpAcceleration;
+                isJumping = true;
+                isGrounded = false;
+            }
 
-            if (ks.IsKeyDown(Keys.Right))
+            else if (ks.IsKeyDown(Keys.Right))
             {
                 position.X += SPEED;
                 spriteEffects = SpriteEffects.FlipHorizontally;
@@ -90,19 +98,9 @@ namespace FinalProject
                 position.X -= SPEED;
 
             }
-            if (position.Y == Game.GraphicsDevice.Viewport.Height)
+            if (isJumping && isGrounded == false)
             {
-                position.Y = 0;
-            }
-            else
-            {
-                position.Y += 5 * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            }
-            if (ks.IsKeyDown(Keys.Space))
-            {
-
-                position.Y -= 5 * 4;
-
+                velocity.Y = currentUpAcceleration;
             }
             frameTimer += gameTime.ElapsedGameTime.TotalSeconds;
             if (frameTimer >= FRAME_DURATION)
