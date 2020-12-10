@@ -72,6 +72,9 @@ namespace FinalProject
             textures.Add(PlayerState.Jumping, Game.Content.Load<Texture2D>("images\\enemy-sheet0"));
             textures.Add(PlayerState.Walking, Game.Content.Load<Texture2D>("images\\enemy-sheet0"));
 
+            position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - textures[state].Width);
+            position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height - textures[state].Height);
+
             sourceRectangles.Add(PlayerState.Idle, new List<Rectangle>());
             sourceRectangles.Add(PlayerState.Jumping, new List<Rectangle>());
             sourceRectangles.Add(PlayerState.Walking, new List<Rectangle>());
@@ -99,6 +102,14 @@ namespace FinalProject
 
 
             base.LoadContent();
+        }
+        public override void Initialize()
+        {
+            //position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - textures[state].Width);
+            //position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height - textures[state].Height);
+
+            base.Initialize();
+            
         }
         public override void Update(GameTime gameTime)
         {
@@ -200,7 +211,7 @@ namespace FinalProject
         {
             SpriteBatch sb = Game.Services.GetService<SpriteBatch>();
             sb.Begin();
-            sb.Draw(textures[state], position, sourceRectangles[state][currentFrame], Color.White, 0f, Vector2.Zero, 1f, spriteEffects, 0f);
+            sb.Draw(textures[state], position, sourceRectangles[state][currentFrame], Color.White, 0f, Vector2.Zero, .3f, spriteEffects, 0f);
             sb.End();
             base.Draw(gameTime);
         }
