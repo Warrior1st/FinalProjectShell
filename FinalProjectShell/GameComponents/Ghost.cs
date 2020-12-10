@@ -12,6 +12,7 @@ namespace FinalProject
     enum PlayerState
     {
         Idle,
+        Jumping,
         Walking
     }
     class Ghost : DrawableGameComponent
@@ -27,6 +28,7 @@ namespace FinalProject
         Dictionary<PlayerState, List<Rectangle>> sourceRectangles;
 
         PlayerState state;
+        KeyboardState prevKs;
 
         Vector2 position;
         Vector2 velocity;
@@ -39,7 +41,15 @@ namespace FinalProject
 
         bool isGrounded = true;
         bool isJumping = false;
-        
+
+        //float groundYCoordiante => Game.GraphicsDevice.Viewport.Height - textures[state].Height;
+
+        //int width => textures[state].Width;
+
+        //int height => textures[state].Height;
+
+        bool drawBorder;
+
         public Ghost(Game game) : base(game)
         {
             textures = new Dictionary<PlayerState, Texture2D>();
@@ -51,6 +61,7 @@ namespace FinalProject
             spriteEffects = SpriteEffects.None;
 
             velocity = Vector2.Zero;
+            drawBorder = false;
 
             DrawOrder = int.MaxValue - 1;
         }
@@ -58,8 +69,12 @@ namespace FinalProject
         protected override void LoadContent()
         {
             textures.Add(PlayerState.Idle, Game.Content.Load<Texture2D>("images\\enemy-sheet0"));
+            textures.Add(PlayerState.Jumping, Game.Content.Load<Texture2D>("images\\enemy-sheet0"));
+            textures.Add(PlayerState.Walking, Game.Content.Load<Texture2D>("images\\enemy-sheet0"));
 
             sourceRectangles.Add(PlayerState.Idle, new List<Rectangle>());
+            sourceRectangles.Add(PlayerState.Jumping, new List<Rectangle>());
+            sourceRectangles.Add(PlayerState.Walking, new List<Rectangle>());
 
             int idleFrameCount = 3;
 
@@ -67,6 +82,16 @@ namespace FinalProject
             {
                 Rectangle rect = new Rectangle(i * WIDTH, 0, WIDTH, HEIGHT);
                 sourceRectangles[PlayerState.Idle].Add(rect);
+            }
+            for (int i = 0; i < idleFrameCount; i++)
+            {
+                Rectangle rect = new Rectangle(i * WIDTH, 0, WIDTH, HEIGHT);
+                sourceRectangles[PlayerState.Jumping].Add(rect);
+            }
+            for (int i = 0; i < idleFrameCount; i++)
+            {
+                Rectangle rect = new Rectangle(i * WIDTH, 0, WIDTH, HEIGHT);
+                sourceRectangles[PlayerState.Walking].Add(rect);
             }
 
             position = new Vector2(Game.GraphicsDevice.Viewport.Width / 2 - WIDTH / 2,
@@ -80,28 +105,11 @@ namespace FinalProject
             KeyboardState ks = Keyboard.GetState();
             spriteEffects = SpriteEffects.None;
             velocity.Y = SPEED;
-            if (ks.IsKeyDown(Keys.Space))
-            {
-                currentUpAcceleration = INITIAL_UP_ACCELERATION;
-                velocity.Y = currentUpAcceleration;
-                isJumping = true;
-                isGrounded = false;
-            }
+            UpdateKeyboard();
+            UpdateJumping();
 
-            else if (ks.IsKeyDown(Keys.Right))
-            {
-                position.X += SPEED;
-                spriteEffects = SpriteEffects.FlipHorizontally;
-            }
-            else if (ks.IsKeyDown(Keys.Left))
-            {
-                position.X -= SPEED;
 
-            }
-            if (isJumping && isGrounded == false)
-            {
-                velocity.Y = currentUpAcceleration;
-            }
+
             frameTimer += gameTime.ElapsedGameTime.TotalSeconds;
             if (frameTimer >= FRAME_DURATION)
             {
@@ -112,6 +120,26 @@ namespace FinalProject
             {
                 currentFrame = 0;
             }
+            if (isGrounded == false && isJumping == false)
+            {
+                // BUG: this should happen if we just walk off a platform
+                // but happens in other cases too.  
+                currentUpAcceleration += GRAVITY;
+                velocity.Y = currentUpAcceleration;
+            }
+
+            if (position.Y >= Game.GraphicsDevice.Viewport.Height)
+            {
+                // if we finally made it to the ground, 
+                // reset that our ground variables
+                position.Y = Game.GraphicsDevice.Viewport.Height;
+                isGrounded = true;
+                isJumping = false;
+            }
+
+
+            position += velocity;
+            velocity = Vector2.Zero;
             base.Update(gameTime);
         }
         private void UpdateKeyboard()
@@ -134,6 +162,7 @@ namespace FinalProject
             if (ks.IsKeyDown(Keys.Right))
             {
                 velocity.X = SPEED;
+                spriteEffects = SpriteEffects.FlipHorizontally;
                 if (isJumping == false)
                 {
                     state = PlayerState.Walking;
@@ -143,7 +172,6 @@ namespace FinalProject
             else if (ks.IsKeyDown(Keys.Left))
             {
                 velocity.X = -SPEED;
-                effects = SpriteEffects.FlipHorizontally;
                 if (isJumping == false)
                 {
                     state = PlayerState.Walking;
@@ -158,6 +186,15 @@ namespace FinalProject
                 }
             }
             prevKs = ks;
+        }
+        private void UpdateJumping()
+        {
+            if (isJumping && isGrounded == false)
+            {
+                velocity.Y = currentUpAcceleration;
+                currentUpAcceleration += GRAVITY;
+
+            }
         }
         public override void Draw(GameTime gameTime)
         {
