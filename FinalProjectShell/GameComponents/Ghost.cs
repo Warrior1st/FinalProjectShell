@@ -169,10 +169,10 @@ namespace FinalProject
                 isGrounded = false;
             }
 
-            if (ks.IsKeyDown(Keys.B) && prevKs.IsKeyUp(Keys.B))
-            {
-                drawBorder = !drawBorder;
-            }
+            //if (ks.IsKeyDown(Keys.B) && prevKs.IsKeyUp(Keys.B))
+            //{
+            //    drawBorder = !drawBorder;
+            //}
 
             if (ks.IsKeyDown(Keys.Right))
             {
@@ -199,6 +199,11 @@ namespace FinalProject
                 {
                     state = PlayerState.Idle;
                 }
+                //if (position.Y >= groundYCoordiante/ 1.5f)
+                //{
+                //    position.Y = groundYCoordiante / 1.5f;
+                //    state = PlayerState.Idle;
+                //}
             }
             prevKs = ks;
         }
@@ -206,16 +211,28 @@ namespace FinalProject
         {
             if (isJumping && isGrounded == false)
             {
-                velocity.Y = currentUpAcceleration;
-                currentUpAcceleration += GRAVITY;
-
+                if (position.Y >= groundYCoordiante / 1.5f)
+                {
+                    position.Y = groundYCoordiante / 1.5f;
+                    
+                    state = PlayerState.Idle;
+                    isJumping = false;
+                    isGrounded = true;
+                }
+                else
+                {
+                    velocity.Y = currentUpAcceleration;
+                    currentUpAcceleration += GRAVITY;
+                    
+                }
+                
             }
         }
         public override void Draw(GameTime gameTime)
         {
             SpriteBatch sb = Game.Services.GetService<SpriteBatch>();
             sb.Begin();
-            sb.Draw(textures[state], position, sourceRectangles[state][currentFrame], Color.White, 0f, Vector2.Zero, .3f, spriteEffects, 0f);
+            sb.Draw(textures[state], position, sourceRectangles[state][currentFrame], Color.Pink, 0f, Vector2.Zero, .3f, spriteEffects, 0f);
             sb.End();
             base.Draw(gameTime);
         }
