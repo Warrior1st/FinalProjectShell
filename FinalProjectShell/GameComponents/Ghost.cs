@@ -19,9 +19,9 @@ namespace FinalProject
     {
         public const int WIDTH = 300;
         public const int HEIGHT = 200;
-        const float INITIAL_UP_ACCELERATION = -15f;
-        const float GRAVITY = 0.5f;
-        const int SPEED = 3;
+        const float INITIAL_UP_ACCELERATION = -5f;
+        const float GRAVITY = .5f;
+        const int SPEED = 2;
         const double FRAME_DURATION = 0.1;
 
         Dictionary<PlayerState, Texture2D> textures;
@@ -107,22 +107,22 @@ namespace FinalProject
         }
         public override void Initialize()
         {
-            position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - WIDTH*2);
-            position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height - HEIGHT*2);
+            position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - WIDTH * 2);
+            position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height - HEIGHT * 2);
 
             base.Initialize();
-            
+
         }
         public override void Update(GameTime gameTime)
         {
-            position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - groundXCoordiante/1.9f);
-            position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height- groundYCoordiante/1.5f);
+            position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - groundXCoordiante / 1.9f);
+            position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height - groundYCoordiante / 1.5f);
             KeyboardState ks = Keyboard.GetState();
             spriteEffects = SpriteEffects.None;
             velocity.Y = SPEED;
             UpdateKeyboard();
             UpdateJumping();
-            
+
 
 
             frameTimer += gameTime.ElapsedGameTime.TotalSeconds;
@@ -208,25 +208,29 @@ namespace FinalProject
             prevKs = ks;
         }
         private void UpdateJumping()
-        {
+        {                
+
             if (isJumping && isGrounded == false)
             {
-                if (position.Y >= groundYCoordiante / 1.5f)
+                if (position.Y == groundYCoordiante / 1.5f)
                 {
-                    position.Y = groundYCoordiante / 1.5f;
-                    
-                    state = PlayerState.Idle;
+                    currentUpAcceleration = 0;
+                    state = PlayerState.Jumping;
                     isJumping = false;
                     isGrounded = true;
                 }
-                else
-                {
-                    velocity.Y = currentUpAcceleration;
-                    currentUpAcceleration += GRAVITY;
-                    
-                }
+                //else
+                //{
+
+                velocity.Y = currentUpAcceleration;
+                currentUpAcceleration += GRAVITY;
                 
+
+                //}
+
             }
+            
+            
         }
         public override void Draw(GameTime gameTime)
         {
