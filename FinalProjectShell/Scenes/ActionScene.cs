@@ -18,6 +18,8 @@ namespace FinalProject
             // method.  It will take care of adding the component to the 
             // game as well as keeping track of what belongs to it.
             AddComponent(new Ghost(Game));
+            AddComponent(new ObstacleManager(Game));
+            AddComponent(new Score(Game));
             AddComponent(new GameBackground(Game));
             
 

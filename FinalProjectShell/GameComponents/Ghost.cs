@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Audio;
 
 namespace FinalProject
 {
@@ -15,7 +16,7 @@ namespace FinalProject
         Jumping,
         Walking
     }
-    class Ghost : DrawableGameComponent
+    class Ghost : Obstacles, ICollidable
     {
         public const int WIDTH = 300;
         public const int HEIGHT = 200;
@@ -23,14 +24,16 @@ namespace FinalProject
         const float GRAVITY = .5f;
         const int SPEED = 2;
         const double FRAME_DURATION = 0.1;
-
+        private const int REAL_WIDTH = 100;
+        private const int REAL_HEIGHT = 60;
         Dictionary<PlayerState, Texture2D> textures;
+        public Color[] ghostData;
         Dictionary<PlayerState, List<Rectangle>> sourceRectangles;
 
         PlayerState state;
         KeyboardState prevKs;
 
-        Vector2 position;
+        public Vector2 position;
         Vector2 velocity;
         float currentUpAcceleration = 0f;
 
@@ -42,13 +45,15 @@ namespace FinalProject
         bool isGrounded = true;
         bool isJumping = false;
 
+        
+
         float groundYCoordiante => Game.GraphicsDevice.Viewport.Height - HEIGHT;
 
         float groundXCoordiante => Game.GraphicsDevice.Viewport.Height - WIDTH;
 
-        //int width => textures[state].Width;
+        int width => textures[state].Width;
 
-        //int height => textures[state].Height;
+        int height => textures[state].Height;
 
         bool drawBorder;
 
@@ -60,19 +65,35 @@ namespace FinalProject
             state = PlayerState.Idle;
 
             currentFrame = 0;
-            spriteEffects = SpriteEffects.None;
+            spriteEffects = SpriteEffects.FlipHorizontally;
 
             velocity = Vector2.Zero;
             drawBorder = false;
 
             DrawOrder = int.MaxValue - 1;
+
+            
         }
+
+        //public override Rectangle ghostRectangle
+        //{
+        //    get
+        //    {
+        //        Rectangle rect = textures[state].Bounds;
+        //        rect.Location = position.ToPoint();
+        //        return rect;
+        //    }
+        //}
+
+        public Rectangle CollisionBox => new Rectangle((int)position.X, (int)position.Y, REAL_WIDTH, REAL_HEIGHT);
 
         protected override void LoadContent()
         {
             textures.Add(PlayerState.Idle, Game.Content.Load<Texture2D>("images\\enemy-sheet0"));
             textures.Add(PlayerState.Jumping, Game.Content.Load<Texture2D>("images\\enemy-sheet0"));
             textures.Add(PlayerState.Walking, Game.Content.Load<Texture2D>("images\\enemy-sheet0"));
+            ghostData = new Color[textures[state].Width * textures[state].Height];
+            textures[state].GetData(ghostData);
 
             //position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - WIDTH*2);
             //position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height - HEIGHT*2);
@@ -103,6 +124,8 @@ namespace FinalProject
                                    Game.GraphicsDevice.Viewport.Height / 2 - HEIGHT / 2);
 
 
+           
+
             base.LoadContent();
         }
         public override void Initialize()
@@ -113,15 +136,19 @@ namespace FinalProject
             base.Initialize();
 
         }
+        
         public override void Update(GameTime gameTime)
         {
             position.X = MathHelper.Clamp(position.X, 0, Game.GraphicsDevice.Viewport.Width - groundXCoordiante / 1.9f);
             position.Y = MathHelper.Clamp(position.Y, 0, Game.GraphicsDevice.Viewport.Height - groundYCoordiante / 1.5f);
             KeyboardState ks = Keyboard.GetState();
-            spriteEffects = SpriteEffects.None;
+           // spriteEffects = SpriteEffects.FlipHorizontally;
             velocity.Y = SPEED;
             UpdateKeyboard();
             UpdateJumping();
+
+            LookForZombieCollision();
+            LookForHandCollision();
 
 
 
@@ -157,6 +184,34 @@ namespace FinalProject
             velocity = Vector2.Zero;
             base.Update(gameTime);
         }
+
+        private void LookForHandCollision()
+        {
+            for (int i = 0; i < Game.Components.OfType<Hand>().Count(); i++)
+            {
+                Hand hand = Game.Components.OfType<Hand>().ElementAt(i);
+                //Zombie zombie = new Zombie(Game);
+                if (hand.CollisionBox.Intersects(CollisionBox))
+                {
+                    hand.HandleCollision(this);
+                }
+            }
+        }
+
+        private void LookForZombieCollision()
+        {
+            for (int i = 0; i < Game.Components.OfType<Zombie>().Count(); i++)
+            {
+                Zombie zombie = Game.Components.OfType<Zombie>().ElementAt(i);
+                //Zombie zombie = new Zombie(Game);
+                if (zombie.CollisionBox.Intersects(CollisionBox))
+                {
+                    zombie.HandleCollision(this);
+                    
+                }
+            }
+        }
+
         private void UpdateKeyboard()
         {
             KeyboardState ks = Keyboard.GetState();
@@ -177,9 +232,9 @@ namespace FinalProject
             if (ks.IsKeyDown(Keys.Right))
             {
                 velocity.X = SPEED;
-                spriteEffects = SpriteEffects.FlipHorizontally;
                 if (isJumping == false)
                 {
+                    spriteEffects = SpriteEffects.FlipHorizontally;
                     state = PlayerState.Walking;
                 }
 
@@ -189,6 +244,7 @@ namespace FinalProject
                 velocity.X = -SPEED;
                 if (isJumping == false)
                 {
+                    spriteEffects = SpriteEffects.None;
                     state = PlayerState.Walking;
                 }
             }
@@ -219,15 +275,22 @@ namespace FinalProject
                     isJumping = false;
                     isGrounded = true;
                 }
-                //else
-                //{
 
+       
+
+            }
+            if(isGrounded==false && isJumping==true)
+            {
                 velocity.Y = currentUpAcceleration;
                 currentUpAcceleration += GRAVITY;
-                
 
-                //}
-
+                if (position.Y >= groundYCoordiante / 1.5f)
+                {
+                    position.Y = groundYCoordiante / 1.5f;
+                    state = PlayerState.Idle;
+                    isGrounded = true;
+                    isJumping = false;
+                }
             }
             
             
@@ -236,9 +299,17 @@ namespace FinalProject
         {
             SpriteBatch sb = Game.Services.GetService<SpriteBatch>();
             sb.Begin();
-            sb.Draw(textures[state], position, sourceRectangles[state][currentFrame], Color.Pink, 0f, Vector2.Zero, .3f, spriteEffects, 0f);
+            sb.Draw(textures[state], position, sourceRectangles[state][currentFrame], Color.Pink, 0f, Vector2.Zero, .3f, spriteEffects , 0f);
             sb.End();
             base.Draw(gameTime);
+        }
+
+        public void HandleCollision(ICollidable collidable)
+        {
+            string score = Game.Services.GetService<Score>().score.ToString();
+            Game.Components.Remove(this);
+            ((Game1)Game).HideAllScenes();
+            Game.Services.GetService<EndScene>().Show();
         }
     }
 }

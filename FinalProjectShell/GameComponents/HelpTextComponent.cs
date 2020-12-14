@@ -33,7 +33,7 @@ namespace FinalProject
 
         protected override void LoadContent()
         {
-            texture = Game.Content.Load<Texture2D>("Images/helpImage");
+            texture = Game.Content.Load<Texture2D>("Images/helpImage2");
             base.LoadContent();
         }
     }

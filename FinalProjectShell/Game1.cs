@@ -12,7 +12,8 @@ namespace FinalProject
     {
         GraphicsDeviceManager graphics;
         public SpriteBatch spriteBatch;
-       
+
+        
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -29,12 +30,12 @@ namespace FinalProject
         /// </summary>
         protected override void Initialize()
         {
-            
+
             // TODO: use this.Content to load your game content here
             StartScene menuScene = new StartScene(this);
             this.Components.Add(menuScene);
             Services.AddService<StartScene>(menuScene);
-            
+
 
             //create other scenes here and add to component list
             ActionScene actionScene = new ActionScene(this);
@@ -45,9 +46,19 @@ namespace FinalProject
             this.Components.Add(helpScene);
             Services.AddService<HelpScene>(helpScene);
 
-            // others.....
+            EndScene endScene = new EndScene(this);
+            this.Components.Add(endScene);
+            Services.AddService<EndScene>(endScene);
 
-            
+            CreditScene creditScene = new CreditScene(this);
+            this.Components.Add(creditScene);
+            Services.AddService<CreditScene>(creditScene);
+
+
+            HighScore highScore = new HighScore(this);
+            this.Components.Add(highScore);
+            Services.AddService<HighScore>(highScore);
+
             base.Initialize();
 
             // hide all then show our first scene
@@ -62,10 +73,10 @@ namespace FinalProject
         /// Get all scenes currently in our game, and hide/disable them
         /// </summary>
         public void HideAllScenes()
-        {            
+        {
             foreach (GameScene scene in Components.OfType<GameScene>())
             {
-                scene.Hide();             
+                scene.Hide();
             }
         }
 
@@ -79,7 +90,7 @@ namespace FinalProject
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             Services.AddService<SpriteBatch>(spriteBatch);
-           
+
         }
 
         /// <summary>
@@ -98,7 +109,7 @@ namespace FinalProject
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-   
+
             base.Update(gameTime);
         }
 

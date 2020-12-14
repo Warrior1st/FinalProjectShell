@@ -99,7 +99,11 @@ namespace FinalProject
                     Game.Exit();
                     break;
                 case MenuSelection.HighScore:
+                    Game.Services.GetService<HighScore>().Show();
+                    break;
                 case MenuSelection.Credit:
+                    Game.Services.GetService<CreditScene>().Show();
+                    break;
                 default:
                     // for now there is nothing handling the other options
                     // we will simply show this screen again
